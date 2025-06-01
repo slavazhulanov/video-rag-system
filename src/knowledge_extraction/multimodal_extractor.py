@@ -13,6 +13,9 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 class MultimodalExtractor:
+    '''
+    Класс MultimodalExtractor извлекает мультимодальные признаки (визуальные + аудио) из видеоклипов с помощью модели ImageBind.
+    '''
     def __init__(self, device: str = "cpu"):
         self.device = device
         logger.info(f"Инициализация MultimodalExtractor на устройстве: {device}")
@@ -23,6 +26,11 @@ class MultimodalExtractor:
         logger.info("Модель ImageBind загружена")
 
     def extract_features(self, video_path: str) -> Dict[str, Any]:
+        # 1. Загружает и преобразует видеоданные для модели ImageBind
+        # 2. Извлекает аудио во временный файл при наличии
+        # 3. Получает эмбеддинги для визуальной и аудио модальностей
+        # 4. Комбинирует эмбеддинги (среднее арифметическое)
+        # 5. Возвращает 1024-мерный вектор признаков
         try:
             logger.info(f"Извлечение признаков из: {video_path}")
             
@@ -78,6 +86,9 @@ class MultimodalExtractor:
             return self._create_empty_features(0.0)
     
     def _extract_safe_embedding(self, embeddings: Dict, modality) -> np.ndarray:
+        # Безопасное извлечение эмбеддингов с проверкой типов
+        # Нормализация размерности до 1024 (обрезка или дополнение нулями)
+        # Преобразование в float32 для совместимости с FAISS
         try:
             if modality not in embeddings:
                 logger.debug(f"Эмбеддинги для {modality} не найдены")

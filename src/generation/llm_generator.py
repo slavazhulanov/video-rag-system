@@ -5,12 +5,18 @@ import logging
 logger = logging.getLogger(__name__)
 
 class LLMGenerator:
+    '''
+    Класс LLMGenerator генерирует ответы на основе найденного контекста с помощью языковой модели Ollama.
+    '''
     def __init__(self, retriever, model_name: str = "qwen3:0.6b"):
         self.retriever = retriever
         self.model_name = model_name
         logger.info(f"Инициализация LLMGenerator с моделью: {model_name}")
         
     def generate_response(self, query: str, context: List[Dict[str, Any]]) -> str:
+        # 1. Создает промпт из запроса и контекста найденных клипов
+        # 2. Отправляет в модель Ollama (qwen3:0.6b)
+        # 3. Возвращает сгенерированный ответ
         try:
             logger.info(f"Генерация ответа для запроса: '{query}'")
             prompt = self._create_prompt(query, context)

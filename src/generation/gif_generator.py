@@ -6,6 +6,9 @@ from typing import List, Dict, Any
 logger = logging.getLogger(__name__)
 
 class GifGenerator:
+    '''
+    Класс GifGenerator создает анимированные GIF-превью из видеоклипов для визуального представления результатов поиска.
+    '''
     def __init__(self, base_dir: Path):
         self.base_dir = base_dir
         self.gif_dir = base_dir / "gifs"
@@ -22,6 +25,10 @@ class GifGenerator:
     
     def create_gif_from_clip(self, clip_path: str, start_time: float, end_time: float, 
                            output_name: str = None, **kwargs) -> str:
+        # 1. Проверяет существование исходного клипа
+        # 2. Ограничивает длительность GIF (max 10 сек)
+        # 3. Создает GIF с помощью FFmpeg с оптимизированными настройками
+        # 4. Возвращает путь к созданному GIF
         try:
             if not Path(clip_path).exists():
                 logger.error(f"Файл клипа не найден: {clip_path}")

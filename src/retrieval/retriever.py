@@ -8,10 +8,17 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Retriever:
+    '''
+    Класс Retriever преобразует текстовые запросы в векторы и выполняет семантический поиск.
+    '''
     def __init__(self, vector_store):
         self.vector_store = vector_store
         
     def search(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
+        # 1. Преобразует текстовый запрос в эмбеддинг через ImageBind
+        # 2. Обрабатывает эмбеддинг для совместимости с векторным хранилищем
+        # 3. Выполняет поиск в векторном хранилище
+        # 4. Возвращает ранжированные результаты
         try:
             logger.info(f"Выполнение поиска по запросу: {query}")
             

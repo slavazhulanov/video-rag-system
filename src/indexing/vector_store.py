@@ -8,6 +8,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 class VectorStore:
+    '''
+    Класс VectorStore управляет векторным хранилищем для семантического поиска с использованием библиотеки FAISS.
+    '''
     def __init__(self, model, dimension: int = 1024):
         self.model = model
         self.dimension = dimension
@@ -16,6 +19,9 @@ class VectorStore:
         self.next_id = 0
 
     def add_video(self, video_path: str, metadata: Dict[str, Any], embeddings: np.ndarray) -> None:
+        # 1. Нормализует эмбеддинги для косинусного сходства
+        # 2. Добавляет в FAISS индекс с уникальным ID
+        # 3. Сохраняет метаданные для восстановления контекста
         if embeddings.ndim == 1:
             embeddings = embeddings.reshape(1, -1)
         
@@ -33,6 +39,10 @@ class VectorStore:
         self.next_id += 1
 
     def search(self, query_vector: np.ndarray, k: int = 5) -> List[Dict[str, Any]]:
+        # 1. Нормализует поисковый вектор
+        # 2. Выполняет поиск ближайших соседей в FAISS
+        # 3. Восстанавливает метаданные для найденных результатов
+        # 4. Сортирует по релевантности (косинусное сходство)
         if query_vector.ndim == 1:
             query_vector = query_vector.reshape(1, -1)
         

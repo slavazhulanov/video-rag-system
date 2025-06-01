@@ -11,7 +11,17 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 class VideoRAGApp:
+    '''
+    Главный класс VideoRAGApp объединяет все компоненты системы и предоставляет веб-интерфейс Gradio.
+    '''
     def __init__(self, base_dir: Path):
+        # Инициализация всех компонентов системы:
+        # - VideoProcessor: обработка видео
+        # - MultimodalExtractor: извлечение признаков
+        # - VectorStore: векторное хранилище
+        # - Retriever: поиск
+        # - LLMGenerator: генерация ответов
+        # - GifGenerator: создание GIF
         self.base_dir = base_dir
         self.video_dir = base_dir / "video"
         self.audio_dir = base_dir / "audio"
@@ -50,6 +60,12 @@ class VideoRAGApp:
             raise
 
     def process_video_only(self, video_path: str) -> str:
+        # Полная обработка видео:
+        # 1. Валидация формата
+        # 2. Разделение на клипы
+        # 3. Извлечение признаков из каждого клипа
+        # 4. Индексирование в векторном хранилище
+        # 5. Сохранение индекса
         try:
             if not video_path or not Path(video_path).exists():
                 logger.warning("Недопустимый видео файл")
@@ -147,6 +163,11 @@ class VideoRAGApp:
             return False
 
     def search_video(self, video_path: str, query: str) -> tuple[str, str, list]:
+        # Поиск и генерация ответа:
+        # 1. Поиск релевантных клипов
+        # 2. Создание GIF-превью
+        # 3. Генерация текстового ответа
+        # 4. Форматирование результатов для UI
         try:
             if not video_path or not Path(video_path).exists():
                 logger.warning("Поиск вызван без видео")

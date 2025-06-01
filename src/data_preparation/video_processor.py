@@ -13,7 +13,13 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 class VideoProcessor:
+    '''
+    Класс VideoProcessor отвечает за обработку видеофайлов: разделение на клипы, 
+    извлечение аудио и подготовку данных для дальнейшего анализа.
+    '''
     def __init__(self, base_dir: Path, max_workers: int = None):
+        # Инициализация базовых директорий для хранения обработанных данных
+        # max_workers ограничивает количество параллельных процессов
         self.base_dir = base_dir
         self.video_dir = base_dir / "video"
         self.audio_dir = base_dir / "audio"
@@ -27,6 +33,11 @@ class VideoProcessor:
         logger.info(f"Инициализация VideoProcessor в {base_dir}, workers: {self.max_workers}")
 
     def process_video(self, video_path: str) -> List[Tuple[str, str]]:
+        # Основной метод обработки видео
+        # 1. Получает информацию о видео (длительность, наличие аудио)
+        # 2. Разделяет на клипы по 30 секунд
+        # 3. Обрабатывает клипы параллельно для ускорения
+        # Возвращает список кортежей (путь_к_видео_клипу, путь_к_аудио_клипу)
         try:
             logger.info(f"Обработка видео: {video_path}")
             
@@ -83,6 +94,9 @@ class VideoProcessor:
         return self._create_clip_optimized(video_path, start, end, has_audio)
         
     def _create_clip_optimized(self, video_path: str, start: float, end: float, has_audio: bool) -> Tuple[str, str]:
+        # Оптимизированное создание клипов с помощью FFmpeg
+        # Использует быстрые пресеты для ускорения обработки
+        # Параллельно извлекает видео и аудио если есть звук
         base_filename = self._generate_clip_filename(video_path, start, end)
         clip_path = self.video_dir / f"{base_filename}.mp4"
         audio_path = self.audio_dir / f"{base_filename}.wav"
