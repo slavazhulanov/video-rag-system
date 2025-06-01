@@ -76,7 +76,7 @@ class GifGenerator:
                     output_name = f"result_{i+1}_score_{score:.3f}"
                     
                     gif_path = self.create_gif_from_clip(
-                        clip_path, 0, min(end_time - start_time, 8), 
+                        clip_path, start_time, min(end_time, start_time + 8), 
                         output_name, fps=8, width=280
                     )
                     
