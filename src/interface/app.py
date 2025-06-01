@@ -2,7 +2,7 @@ import gradio as gr
 import logging
 import numpy as np
 from pathlib import Path
-from src import VideoProcessor, VectorStore, Retriever, MultimodalExtractor, LLMGenerator, GifGenerator
+from src import VideoProcessor, VectorStore, Retriever, MultimodalExtractor, GifGenerator
 
 logging.basicConfig(
     level=logging.INFO,
@@ -20,7 +20,6 @@ class VideoRAGApp:
         # - MultimodalExtractor: извлечение признаков
         # - VectorStore: векторное хранилище
         # - Retriever: поиск
-        # - LLMGenerator: генерация ответов
         # - GifGenerator: создание GIF
         self.base_dir = base_dir
         self.video_dir = base_dir / "video"
@@ -48,7 +47,6 @@ class VideoRAGApp:
                 logger.info("Существующий индекс не найден. Создание нового индекса")
             
             self.retriever = Retriever(self.vector_store)
-            self.generator = LLMGenerator(self.retriever)
             self.processed_videos = set()
             
             self.gif_generator.cleanup_old_gifs(max_age_hours=24)
@@ -191,61 +189,14 @@ class VideoRAGApp:
             
             gif_info = self.gif_generator.create_gifs_from_results(results, max_gifs=3)
             
-            try:
-                answer = self.generator.generate_response(query, results)
-            except Exception as e:
-                logger.error(f"Ошибка генерации ответа: {e}")
-                answer = "✅ Найдены релевантные клипы, но генерация ответа не удалась. Смотрите клипы ниже."
-            
-            fragments_info = []
-            for i, result in enumerate(results):
-                try:
-                    meta = result['metadata']
-                    clip_name = Path(meta['clip_path']).name if meta.get('clip_path') else f"Клип {i+1}"
-                    
-                    fragment = (
-                        f"🎬 **{clip_name}**\n"
-                        f"⏱️ Время: {meta.get('start_time', 0):.1f}-{meta.get('end_time', 0):.1f}с\n"
-                        f"🎯 Релевантность: {result.get('score', 0):.3f}\n"
-                        f"👁️ Визуальное: {meta.get('visual_description', 'N/A')[:100]}...\n"
-                    )
-                    
-                    if meta.get('transcript'):
-                        fragment += f"🗣️ Аудио: {meta['transcript'][:100]}...\n"
-                    
-                    fragments_info.append(fragment)
-                    
-                except Exception as e:
-                    logger.error(f"Ошибка форматирования результата {i}: {e}")
-                    fragments_info.append(f"🎬 Клип {i+1}: Ошибка форматирования")
-            
-            fragments_text = "\n" + "="*50 + "\n".join(fragments_info)
-            
             gif_paths = [info['gif_path'] for info in gif_info if Path(info['gif_path']).exists()]
             
             logger.info(f"Поиск завершен: найдено {len(results)} результатов, создано {len(gif_paths)} GIF")
-            return answer, fragments_text, gif_paths
+            return gif_paths
             
         except Exception as e:
             logger.exception(f"Ошибка поиска: {str(e)}")
             return f"❌ Ошибка поиска: {str(e)}", "", []
-
-    def get_status(self) -> str:
-        try:
-            processed_count = len(self.processed_videos)
-            index_size = self.vector_store.index.ntotal if hasattr(self.vector_store.index, 'ntotal') else 0
-            
-            gif_count = len(list(self.gif_dir.glob("*.gif"))) if self.gif_dir.exists() else 0
-            
-            return (
-                f"📊 **Статус системы**\n"
-                f"🎥 Обработано видео: {processed_count}\n"
-                f"📁 Проиндексировано клипов: {index_size}\n"
-                f"🎬 Создано GIF: {gif_count}\n"
-                f"💾 Путь к индексу: {self.index_path}\n"
-            )
-        except Exception as e:
-            return f"❌ Ошибка статуса: {str(e)}"
 
 def launch_app():
     base_dir = Path("processed_data")
@@ -295,14 +246,6 @@ def launch_app():
         """)
         
         with gr.Row():
-            status_display = gr.Textbox(
-                label="📊 Статус системы",
-                value=app.get_status(),
-                interactive=False,
-                lines=5
-            )
-        
-        with gr.Row():
             with gr.Column(scale=2):
                 video_input = gr.File(
                     label="📁 Загрузить видео",
@@ -330,20 +273,6 @@ def launch_app():
             with gr.Column(scale=1):
                 search_btn = gr.Button("🔍 Поиск", variant="secondary", size="lg")
         
-        with gr.Row():
-            with gr.Column(scale=2):
-                answer = gr.Textbox(
-                    label="💬 Ответ",
-                    interactive=False,
-                    lines=6
-                )
-            with gr.Column(scale=1):
-                fragments = gr.Textbox(
-                    label="📝 Детали клипа",
-                    interactive=False,
-                    lines=6
-                )
-        
         gr.Markdown("## 🎬 Визуальные результаты")
         gif_gallery = gr.Gallery(
             label="Найденные видео клипы (в формате GIF)",
@@ -364,22 +293,8 @@ def launch_app():
         search_btn.click(
             fn=app.search_video,
             inputs=[video_input, query],
-            outputs=[answer, fragments, gif_gallery]
+            outputs=[gif_gallery]
         )
-        
-        process_btn.click(
-            fn=app.get_status,
-            outputs=[status_display]
-        )
-        
-        gr.Markdown("""
-        ### 💡 Примеры запросов:
-        - "Какие объекты видны в сцене?"
-        - "Есть ли люди в видео?"
-        - "Какие действия или движения происходят?"
-        - "Какая обстановка или место действия?"
-        - "Какие цвета преобладают в видео?"
-        """)
     
     try:
         demo.launch(
