@@ -1,0 +1,21 @@
+# Основные зависимости
+gradio>=4.0.0
+moviepy==1.0.0
+Pillow==9.5.0
+numpy<2
+torch==1.13.1
+
+# ImageBind
+git+https://github.com/facebookresearch/ImageBind.git
+
+# FAISS
+faiss-cpu>=1.7.4
+
+# Neo4j
+neo4j>=5.0.0
+
+# Ollama
+ollama>=0.1.0
+
+# Whisper
+openai-whisper>=20231117
