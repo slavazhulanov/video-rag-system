@@ -16,34 +16,33 @@ class VideoProcessor:
         self.video_dir = base_dir / "video"
         self.audio_dir = base_dir / "audio"
         
-        # Создаем директории при инициализации
         self.video_dir.mkdir(parents=True, exist_ok=True)
         self.audio_dir.mkdir(parents=True, exist_ok=True)
         
         self.target_resolution = (640, 360)
-        logger.info(f"VideoProcessor initialized at {base_dir}")
+        logger.info(f"Инициализация VideoProcessor в {base_dir}")
 
     def process_video(self, video_path: str) -> List[Tuple[str, str]]:
         try:
-            logger.info(f"Processing video: {video_path}")
+            logger.info(f"Обработка видео: {video_path}")
             clips_info = []
             
             with av.open(video_path) as container:
                 video_stream = next(s for s in container.streams if s.type == 'video')
                 duration = float(video_stream.duration * video_stream.time_base)
                 clip_duration = 30.0
-                logger.info(f"Video duration: {duration:.2f}s, splitting into {duration/clip_duration:.1f} clips")
+                logger.info(f"Длительность видео: {duration:.2f}с, разделение на {duration/clip_duration:.1f} клипов")
                 
                 for start in range(0, int(duration), int(clip_duration)):
                     end = min(start + clip_duration, duration)
-                    logger.debug(f"Creating clip: {start:.1f}-{end:.1f}s")
+                    logger.debug(f"Создание клипа: {start:.1f}-{end:.1f}с")
                     clip_path, audio_path = self._create_clip(video_path, start, end)
                     clips_info.append((clip_path, audio_path))
             
-            logger.info(f"Created {len(clips_info)} clips")
+            logger.info(f"Создано клипов: {len(clips_info)}")
             return clips_info
         except Exception as e:
-            logger.exception(f"Video processing failed for {video_path}: {str(e)}")
+            logger.exception(f"Ошибка обработки видео для {video_path}: {str(e)}")
             return []
         
     def _create_clip(self, video_path: str, start: float, end: float) -> Tuple[str, str]:
@@ -51,10 +50,9 @@ class VideoProcessor:
         clip_path = self.video_dir / f"{base_filename}.mp4"
         audio_path = self.audio_dir / f"{base_filename}.wav"
         
-        logger.debug(f"Creating clip: {clip_path}")
+        logger.debug(f"Создание клипа: {clip_path}")
         
         try:
-            # Create video clip
             cmd = [
                 'ffmpeg', '-y', 
                 '-ss', str(start), 
@@ -70,9 +68,8 @@ class VideoProcessor:
                 str(clip_path)
             ]
             subprocess.run(cmd, check=True, capture_output=True)
-            logger.debug(f"Created video clip: {clip_path}")
+            logger.debug(f"Видео клип создан: {clip_path}")
             
-            # Extract audio if available
             if self._has_audio(video_path):
                 cmd = [
                     'ffmpeg', '-y', 
@@ -86,16 +83,16 @@ class VideoProcessor:
                     str(audio_path)
                 ]
                 subprocess.run(cmd, check=True, capture_output=True)
-                logger.debug(f"Created audio clip: {audio_path}")
+                logger.debug(f"Аудио клип создан: {audio_path}")
                 return str(clip_path), str(audio_path)
             
             return str(clip_path), ""
         except subprocess.CalledProcessError as e:
-            logger.error(f"FFmpeg command failed: {e.cmd}")
-            logger.error(f"FFmpeg stderr: {e.stderr.decode().strip()}")
+            logger.error(f"Ошибка команды FFmpeg: {e.cmd}")
+            logger.error(f"Ошибка FFmpeg: {e.stderr.decode().strip()}")
             raise
         except Exception as e:
-            logger.exception(f"Clip creation failed for {video_path} [{start}-{end}s]: {str(e)}")
+            logger.exception(f"Ошибка создания клипа для {video_path} [{start}-{end}с]: {str(e)}")
             raise
 
     def _has_audio(self, video_path: str) -> bool:
@@ -103,10 +100,10 @@ class VideoProcessor:
             cmd = ['ffprobe', '-i', video_path, '-show_streams', '-select_streams', 'a', '-loglevel', 'error']
             result = subprocess.run(cmd, capture_output=True, text=True)
             has_audio = 'codec_type=audio' in result.stdout
-            logger.debug(f"Audio check for {video_path}: {has_audio}")
+            logger.debug(f"Проверка аудио для {video_path}: {has_audio}")
             return has_audio
         except Exception as e:
-            logger.warning(f"Audio check failed for {video_path}: {str(e)}")
+            logger.warning(f"Ошибка проверки аудио для {video_path}: {str(e)}")
             return False
 
     def _generate_clip_filename(self, video_path: str, start: float, end: float) -> str:

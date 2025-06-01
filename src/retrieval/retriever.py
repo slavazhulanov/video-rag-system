@@ -13,48 +13,41 @@ class Retriever:
         
     def search(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
         try:
-            logger.info(f"Searching for query: {query}")
+            logger.info(f"Выполнение поиска по запросу: {query}")
             
-            # Правильно подготавливаем текстовые данные для ImageBind
+            # Подготовка текстовых данных для ImageBind
             with torch.no_grad():
-                # Используем функцию load_and_transform_text_data из imagebind.data
                 text_input = data.load_and_transform_text([query], self.vector_store.model.device)
                 inputs = {ModalityType.TEXT: text_input}
                 
-                # Получаем эмбеддинги через модель
                 embeddings = self.vector_store.model(inputs)
                 
-                # Извлекаем текстовые эмбеддинги
                 if ModalityType.TEXT in embeddings:
                     query_embedding = embeddings[ModalityType.TEXT]
                 else:
-                    logger.error("No text embeddings found in model output")
+                    logger.error("Текстовые эмбеддинги не найдены в выходных данных модели")
                     return []
             
-            # Обрабатываем эмбеддинги
             query_embedding = self._process_embedding(query_embedding)
             
             if query_embedding is None:
-                logger.error("Failed to process query embedding")
+                logger.error("Ошибка обработки эмбеддинга запроса")
                 return []
             
-            logger.debug(f"Query embedding shape: {query_embedding.shape}")
-            logger.debug(f"Query embedding type: {type(query_embedding)}")
+            logger.debug(f"Форма эмбеддинга запроса: {query_embedding.shape}")
+            logger.debug(f"Тип эмбеддинга запроса: {type(query_embedding)}")
             
-            # Ищем похожие фрагменты
             results = self.vector_store.search(query_embedding, top_k)
             
-            logger.info(f"Found {len(results)} results")
+            logger.info(f"Найдено результатов: {len(results)}")
             return results
             
         except Exception as e:
-            logger.exception(f"Search failed: {str(e)}")
+            logger.exception(f"Ошибка поиска: {str(e)}")
             return []
     
     def _process_embedding(self, embedding) -> np.ndarray:
-        """Обрабатывает эмбеддинг в правильный формат"""
         try:
-            # Конвертируем в numpy array
             if isinstance(embedding, torch.Tensor):
                 embedding_np = embedding.cpu().numpy()
             elif isinstance(embedding, list):
@@ -65,21 +58,18 @@ class Retriever:
             elif isinstance(embedding, np.ndarray):
                 embedding_np = embedding
             else:
-                logger.error(f"Unexpected embedding type: {type(embedding)}")
+                logger.error(f"Неподдерживаемый тип эмбеддинга: {type(embedding)}")
                 return None
             
-            # Обеспечиваем правильную размерность
             if embedding_np.ndim == 1:
                 embedding_np = embedding_np.reshape(1, -1)
             elif embedding_np.ndim > 2:
-                # Если больше 2 измерений, сжимаем до 2D
                 embedding_np = embedding_np.reshape(embedding_np.shape[0], -1)
             
-            # Приводим к float32
             embedding_np = embedding_np.astype(np.float32)
             
             return embedding_np
             
         except Exception as e:
-            logger.error(f"Failed to process embedding: {e}")
+            logger.error(f"Ошибка обработки эмбеддинга: {e}")
             return None

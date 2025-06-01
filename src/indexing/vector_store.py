@@ -3,6 +3,9 @@ import numpy as np
 from typing import List, Dict, Any
 import json
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 class VectorStore:
     def __init__(self, model, dimension: int = 1024):
@@ -17,7 +20,7 @@ class VectorStore:
             embeddings = embeddings.reshape(1, -1)
         
         if embeddings.shape[1] != self.dimension:
-            raise ValueError(f"Invalid embedding dimension: {embeddings.shape[1]}, expected {self.dimension}")
+            raise ValueError(f"Неверная размерность эмбеддинга: {embeddings.shape[1]}, ожидалось {self.dimension}")
         
         embeddings = embeddings.astype('float32')
         faiss.normalize_L2(embeddings)

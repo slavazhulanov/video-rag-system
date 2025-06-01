@@ -8,11 +8,11 @@ class LLMGenerator:
     def __init__(self, retriever, model_name: str = "qwen3:0.6b"):
         self.retriever = retriever
         self.model_name = model_name
-        logger.info(f"Initialized LLMGenerator with model: {model_name}")
+        logger.info(f"Инициализация LLMGenerator с моделью: {model_name}")
         
     def generate_response(self, query: str, context: List[Dict[str, Any]]) -> str:
         try:
-            logger.info(f"Generating response for query: '{query}'")
+            logger.info(f"Генерация ответа для запроса: '{query}'")
             prompt = self._create_prompt(query, context)
             
             response = ollama.generate(
@@ -23,22 +23,22 @@ class LLMGenerator:
             
             return response['response']
         except Exception as e:
-            logger.error(f"Response generation failed: {str(e)}")
-            return f"Error generating response: {str(e)}"
+            logger.error(f"Ошибка генерации ответа: {str(e)}")
+            return f"Ошибка генерации ответа: {str(e)}"
     
     def _create_prompt(self, query: str, context: List[Dict[str, Any]]) -> str:
         context_text = "\n\n".join([
-            f"Clip {i+1}:\n"
-            f"Time: {item['metadata']['start_time']:.1f}-{item['metadata']['end_time']:.1f}\n"
-            f"Visual: {item['metadata']['visual_description']}"
+            f"Клип {i+1}:\n"
+            f"Время: {item['metadata']['start_time']:.1f}-{item['metadata']['end_time']:.1f}\n"
+            f"Визуальное: {item['metadata']['visual_description']}"
             for i, item in enumerate(context)
         ])
         
-        return f"""Analyze video content and answer the question.
+        return f"""Проанализируйте содержание видео и ответьте на вопрос.
         
-Context:
+Контекст:
 {context_text}
 
-Question: {query}
+Вопрос: {query}
 
-Answer:"""
+Ответ:"""
