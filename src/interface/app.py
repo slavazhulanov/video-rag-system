@@ -364,6 +364,7 @@ def launch_app():
         demo.launch(
             server_name="localhost",
             server_port=7860,
+            inbrowser=True,
             share=False,
             show_error=True
         )
