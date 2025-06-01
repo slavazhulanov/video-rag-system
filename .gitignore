@@ -13,8 +13,5 @@ docs/
 # ImageBind model
 .checkpoints/
 
-# Ollama
-.ollama/
-
 # OS
 .DS_Store
