@@ -201,6 +201,7 @@ class VideoRAGApp:
 def launch_app():
     base_dir = Path("processed_data")
     base_dir.mkdir(exist_ok=True)
+    
     (base_dir / "video").mkdir(parents=True, exist_ok=True)
     (base_dir / "audio").mkdir(parents=True, exist_ok=True)
     (base_dir / "gifs").mkdir(parents=True, exist_ok=True)

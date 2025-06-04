@@ -6,7 +6,7 @@ import subprocess
 from typing import List, Tuple
 from pathlib import Path
 import logging
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from concurrent.futures import ThreadPoolExecutor
 import multiprocessing
 
 logging.basicConfig(level=logging.INFO)
